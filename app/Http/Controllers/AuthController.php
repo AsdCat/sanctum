@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,6 +21,34 @@ class AuthController extends Controller
             'token'=> $token
         ], 201);
     }
-    function login(){}
-    function logout(){}
+    function login(LoginUserRequest $request)
+    {
+        $validated = $request->validated();
+        if(auth()->attempt($validated))
+        {
+            $user= auth()->user();
+            $token = $user->createToken('author_token')->plainTextToken;
+            return response()->json([
+                'status' => 'succes',
+                'user'=> $user,
+                'token'=> $token
+            ], 201);
+        }
+        return response()->json([
+            'status' => 'error',
+            'message'=> 'Invalid credentials',
+        ], 401);
+
+    }
+    function logout()
+    {
+        auth()->user()->currentAccessToken()->delete();
+        //auth()->user()->tokens()->delete();
+        return response()->json([
+            'status' => 'success',
+            'message'=> 'Logout Successfully',
+        ]);
+
+
+    }
 }
